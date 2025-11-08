@@ -1,0 +1,72 @@
+package ai.presight.inventoryservice.controller;
+
+import ai.presight.inventoryservice.model.Product;
+import ai.presight.inventoryservice.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+/**
+ * REST controller for inventory operations.
+ * Exposes endpoints to manage and monitor product stock.
+ */
+@RestController
+@RequestMapping("/api/v1/inventory")
+@RequiredArgsConstructor
+@Slf4j
+public class ProductController {
+
+    private final ProductService productService;
+
+    @GetMapping
+    public ResponseEntity<List<Product>> getAll() {
+    	 String token = jwtUtil.generateToken(username);
+         return ResponseEntity.ok(token);
+        List<Product> products = productService.findAll();
+        
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getById(@PathVariable Long id) {
+        Product product = productService.findById(id);
+        return ResponseEntity.ok(product);
+    }
+
+    @GetMapping("/sku/{skuCode}")
+    public ResponseEntity<Product> getBySku(@PathVariable String skuCode) {
+        Product product = productService.findBySku(skuCode);
+        return ResponseEntity.ok(product);
+    }
+
+    @PostMapping
+    public ResponseEntity<Product> create(@RequestBody Product product) {
+        Product created = productService.create(product);
+        log.info("Product created: [{}] {}", created.getSkuCode(), created.getName());
+        return ResponseEntity.ok(created);
+    }
+
+    @PutMapping
+    public ResponseEntity<Product> update(@RequestBody Product product) {
+        Product updated = productService.update(product);
+        log.info("Product updated: [{}]", updated.getSkuCode());
+        return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/deduct")
+    public ResponseEntity<Product> deductStock(@RequestParam String skuCode, @RequestParam int qty) {
+        Product updated = productService.deductStock(skuCode, qty);
+        log.info("Stock deducted for SKU [{}], remaining quantity: {}", skuCode, updated.getQuantity());
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        productService.delete(id);
+        log.info("Product deleted (id={})", id);
+        return ResponseEntity.noContent().build();
+    }
+}

@@ -1,0 +1,89 @@
+package ai.presight.inventoryservice.service;
+
+import ai.presight.inventoryservice.model.Product;
+import ai.presight.inventoryservice.repository.ProductRepository;
+import ai.presight.inventoryservice.exception.ResourceNotFoundException;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    @Value("${inventory.threshold:10}")
+    private int inventoryThreshold;
+
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+
+    public Product getProductById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found with id: " + id));
+    }
+
+    public Product getProductBySku(String skuCode) {
+        return productRepository.findBySkuCodeIgnoreCase(skuCode)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("Product not found with SKU: " + skuCode));
+    }
+
+    @Transactional
+    public Product addProduct(Product product) {
+        Product saved = productRepository.save(product);
+        log.info("✅ Product added: {} | Qty: {}", saved.getSkuCode(), saved.getQuantity());
+        return saved;
+    }
+
+    @Transactional
+    public Product updateProduct(Product product) {
+        Product existing = getProductBySku(product.getSkuCode());
+        existing.setName(product.getName());
+        existing.setPrice(product.getPrice());
+        existing.setQuantity(product.getQuantity());
+        existing.setStatus(product.getStatus());
+        existing.setRemarks(product.getRemarks());
+        existing.setVersion(existing.getVersion() + 1);
+        Product updated = productRepository.save(existing);
+        log.info("🔄 Product updated: {} | Version {}", updated.getSkuCode(), updated.getVersion());
+        return updated;
+    }
+
+    @Transactional
+    public Product deductStock(String skuCode, int qty) {
+        Product product = getProductBySku(skuCode);
+
+        if (product.getQuantity() < qty) {
+            log.error("❌ Insufficient stock for SKU: {} | Available: {} | Requested: {}",
+                    skuCode, product.getQuantity(), qty);
+            throw new IllegalStateException("Insufficient stock for SKU: " + skuCode);
+        }
+
+        product.setQuantity(product.getQuantity() - qty);
+        Product updated = productRepository.save(product);
+
+        if (updated.getQuantity() < inventoryThreshold) {
+            log.warn("⚠️ Low inventory alert: SKU={} | Remaining={}", skuCode, updated.getQuantity());
+        }
+
+        return updated;
+    }
+
+    @Transactional
+    public void deleteProduct(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Product not found with id: " + id);
+        }
+        productRepository.deleteById(id);
+        log.info("🗑️ Product deleted with id: {}", id);
+    }
+}

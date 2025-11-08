@@ -1,0 +1,10 @@
+package ai.presight.orderservice.model;
+
+import lombok.Data;
+
+@Data
+public class OrderRequest {
+    private String skuCode;
+    private double price;
+    private int quantity;
+}

@@ -1,0 +1,27 @@
+package ai.presight.orderservice.controller;
+
+import ai.presight.orderservice.model.*;
+import ai.presight.orderservice.service.OrderService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/orders")
+@RequiredArgsConstructor
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @PostMapping
+    public ResponseEntity<OrderResponse> placeOrder(@RequestBody OrderRequest request) {
+        return ResponseEntity.ok(orderService.placeOrder(request));
+    }
+
+    @GetMapping("/{orderNumber}")
+    public ResponseEntity<OrderResponse> getOrder(@PathVariable String orderNumber) {
+        log.info("Fetching order {}", orderNumber);
+        OrderResponse response = orderService.getOrder(orderNumber);
+        return ResponseEntity.ok(response);
+    }
+}

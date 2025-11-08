@@ -1,0 +1,57 @@
+package ai.presight.orderservice.service;
+
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
+import ai.presight.orderservice.client.InventoryClient;
+import ai.presight.orderservice.entity.OrderEntity;
+import ai.presight.orderservice.model.Order;
+import ai.presight.orderservice.model.OrderRequest;
+import ai.presight.orderservice.model.OrderResponse;
+import ai.presight.orderservice.repository.OrderRepository;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final InventoryClient inventoryClient;
+
+    @Transactional
+    public OrderResponse placeOrder(OrderRequest request) {
+        log.info("Validating inventory for SKU: {}", request.getSkuCode());
+
+        boolean isAvailable = inventoryClient.isInStock(request.getSkuCode(), request.getQuantity());
+        if (!isAvailable) {
+            throw new RuntimeException("Product not available in sufficient quantity");
+        }
+
+        // Create order entity
+        OrderEntity order = new OrderEntity();
+        order.setOrderNumber(UUID.randomUUID().toString());
+        order.setSkuCode(request.getSkuCode());
+        order.setPrice(request.getPrice());
+        order.setQuantity(request.getQuantity());
+        order.setStatus("PLACED");
+
+        orderRepository.save(order);
+        log.info("Order {} saved successfully", order.getOrderNumber());
+
+        // Deduct stock
+        inventoryClient.deductStock(request.getSkuCode(), request.getQuantity());
+
+        return new OrderResponse(order.getOrderNumber(), "Order placed successfully", "PLACED");
+    }
+
+    public OrderResponse getOrder(String orderNumber) {
+        Order order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderNumber));
+
+        return new OrderResponse(order.getOrderNumber(), "Order fetched successfully", order.getStatus());
+    }
+}

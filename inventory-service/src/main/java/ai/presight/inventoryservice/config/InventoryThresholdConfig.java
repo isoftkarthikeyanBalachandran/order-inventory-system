@@ -1,0 +1,23 @@
+package ai.presight.inventoryservice.config;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.stereotype.Component;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
+@Getter
+@Setter
+@RefreshScope
+@Component
+public class InventoryThresholdConfig {
+
+    @Value("${inventory.threshold:5}") 
+    private int threshold;
+
+    public void logThreshold() {
+        log.info("Current dynamic threshold = {}", threshold);
+    }
+}

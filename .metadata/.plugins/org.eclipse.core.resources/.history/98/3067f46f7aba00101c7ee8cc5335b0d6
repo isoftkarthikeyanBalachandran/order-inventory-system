@@ -1,0 +1,5 @@
+package ai.presight.inventoryservice.repository;
+
+public class ProductRepository {
+
+}

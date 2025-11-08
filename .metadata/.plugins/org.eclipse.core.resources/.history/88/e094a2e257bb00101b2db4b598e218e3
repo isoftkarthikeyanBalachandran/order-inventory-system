@@ -1,0 +1,20 @@
+package ai.presight.apigateway.filter;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@Slf4j
+@Configuration
+public class RequestLoggingFilter {
+	 @Bean
+	    public GlobalFilter logFilter() {
+	        return (exchange, chain) -> {
+	            ServerWebExchange request = exchange;
+	            log.info("➡️  Incoming {} {}", request.getRequest().getMethod(), request.getRequest().getURI());
+	            return chain.filter(exchange)
+	                    .then(Mono.fromRunnable(() ->
+	                            log.info("⬅️  Completed {} {}", request.getResponse().getStatusCode(),
+	                                    request.getRequest().getURI())));
+	        };
+	    }
+	}

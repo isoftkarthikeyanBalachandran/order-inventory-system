@@ -1,0 +1,20 @@
+package ai.presight.orderservice.exception;
+
+import feign.Response;
+import feign.codec.ErrorDecoder;
+import org.springframework.stereotype.Component;
+
+@Component
+public class FeignCustomErrorDecoder implements ErrorDecoder {
+
+    @Override
+    public Exception decode(String methodKey, Response response) {
+        if (response.status() == 404) {
+            return new RuntimeException("Inventory not found for given SKU");
+        }
+        if (response.status() == 400) {
+            return new RuntimeException("Bad request to inventory service");
+        }
+        return new RuntimeException("Inventory service error: " + response.status());
+    }
+}

@@ -1,0 +1,5 @@
+package ai.presight.inventoryservice.controller;
+
+public class AuthController {
+
+}

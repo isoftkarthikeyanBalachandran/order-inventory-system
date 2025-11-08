@@ -1,0 +1,5 @@
+package ai.presight.orderservice.exception;
+
+public class FeignCustomErrorDecoder {
+
+}

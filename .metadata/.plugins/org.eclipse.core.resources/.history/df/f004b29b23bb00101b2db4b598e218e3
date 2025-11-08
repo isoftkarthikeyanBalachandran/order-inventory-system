@@ -1,0 +1,93 @@
+package ai.presight.inventoryservice.controller;
+
+import java.util.List;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
+import ai.presight.inventoryservice.model.Product;
+import ai.presight.inventoryservice.security.JwtUtil;
+import ai.presight.inventoryservice.service.ProductService;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * REST controller for inventory operations.
+ * Exposes endpoints to manage and monitor product stock.
+ */
+@RestController
+@RequestMapping("/api/v1/inventory")
+@RequiredArgsConstructor
+@Slf4j
+public class ProductController {
+
+    private final ProductService productService;
+    private final JwtUtil jwtUtil;
+
+    @GetMapping
+    public ResponseEntity<List<Product>> getAll(HttpServletRequest request) {
+    	
+        List<Product> products = productService.findAll();
+        
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getById(@PathVariable Long id) {
+        Product product = productService.findById(id);
+        return ResponseEntity.ok(product);
+    }
+
+    @GetMapping("/sku/{skuCode}")
+    public ResponseEntity<Product> getBySku(@PathVariable String skuCode) {
+        Product product = productService.findBySku(skuCode);
+        return ResponseEntity.ok(product);
+    }
+
+    @PostMapping
+    public ResponseEntity<Product> create(@RequestBody Product product) {
+        Product created = productService.create(product);
+        log.info("Product created: [{}] {}", created.getSkuCode(), created.getName());
+        return ResponseEntity.ok(created);
+    }
+
+    @PutMapping
+    public ResponseEntity<Product> update(@RequestBody Product product) {
+        Product updated = productService.update(product);
+        log.info("Product updated: [{}]", updated.getSkuCode());
+        return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/deduct")
+    public ResponseEntity<Product> deductStock(@RequestParam String skuCode, @RequestParam int qty) {
+        Product updated = productService.deductStock(skuCode, qty);
+        log.info("Stock deducted for SKU [{}], remaining quantity: {}", skuCode, updated.getQuantity());
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        productService.delete(id);
+        log.info("Product deleted (id={})", id);
+        return ResponseEntity.noContent().build();
+    }
+    
+    
+    @PostMapping("/token")
+    public ResponseEntity<Map<String, String>> generateToken(@RequestParam String username) {
+        // Temporary fixed role
+        String token = jwtUtil.generateToken(username, "ROLE_USER");
+        return ResponseEntity.ok(Map.of("token", token));
+    }
+}

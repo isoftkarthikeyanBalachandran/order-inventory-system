@@ -1,0 +1,62 @@
+package ai.presight.inventoryservice.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.LocalDateTime;
+
+/**
+ * Represents a product in the inventory.
+ * Maps directly to the 'products' table in the database.
+ */
+@Entity
+@Table(name = "products")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class Product {
+
+    /** Primary key – generated automatically. */
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    /** Unique SKU code used as a business identifier. */
+    @Column(name = "sku_code", nullable = false, unique = true, length = 50)
+    private String skuCode;
+
+    /** Product name or description. */
+    @Column(nullable = false, length = 150)
+    private String name;
+
+    /** Unit price of the product. */
+    @Column(nullable = false)
+    private Double price;
+
+    /** Current available quantity in stock. */
+    @Column(nullable = false)
+    private Integer quantity;
+
+    /** Operational status (e.g., ACTIVE, INACTIVE, DISCONTINUED). */
+    @Column(length = 20)
+    private String status = "ACTIVE";
+
+    /** Timestamp when the record was created. */
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    /** Timestamp when the record was last updated. */
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
+
+    
+    /**
+     * Automatically updates the 'updated_at' timestamp before each modification.
+     */
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
+    }
+}

@@ -1,0 +1,55 @@
+package ai.presight.orderservice.service;
+
+import java.util.UUID;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import ai.presight.orderservice.client.InventoryClient;
+import ai.presight.orderservice.entity.*;
+import ai.presight.orderservice.model.*;
+import ai.presight.orderservice.repository.OrderRepository;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final InventoryClient inventoryClient;
+
+    @Transactional
+    public OrderResponse placeOrder(OrderRequest request) {
+        String orderNumber = UUID.randomUUID().toString();
+        log.info("Placing multi-item order: {}", orderNumber);
+
+        // Create main order
+        OrderEntity order = new OrderEntity();
+        order.setOrderNumber(orderNumber);
+        order.setStatus("PENDING");
+
+        double totalAmount = 0.0;
+
+        // For each item — validate stock and attach to order
+        for (var itemReq : request.getItems()) {
+            boolean available = inventoryClient.isInStock(itemReq.getSkuCode(), itemReq.getQuantity());
+            if (!available) {
+                throw new RuntimeException("Insufficient stock for SKU: " + itemReq.getSkuCode());
+            }
+
+            double lineTotal = itemReq.getPrice() * itemReq.getQuantity();
+            totalAmount += lineTotal;
+
+            OrderItemEntity item = OrderItemEntity.builder()
+                    .skuCode(itemReq.getSkuCode())
+                    .quantity(itemReq.getQuantity())
+                    .price(itemReq.getPrice())
+                    .order(order)
+                    .build();
+
+            order.getItems().add(item);
+        }
+
+        order.setStatus("PLACED");
+        orderRepository.save(order);
+        log.info("Order {} placed successfully, totalAmount={}", orderNumber, totalAmount

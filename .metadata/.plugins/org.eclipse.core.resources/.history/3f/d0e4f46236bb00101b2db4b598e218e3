@@ -1,0 +1,58 @@
+package ai.presight.orderservice.service;
+
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ai.presight.orderservice.client.InventoryClient;
+import ai.presight.orderservice.entity.OrderEntity;
+import ai.presight.orderservice.model.OrderResponse;
+import ai.presight.orderservice.model.OrderRequest;
+import ai.presight.orderservice.repository.OrderRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final InventoryClient inventoryClient;
+
+    @Transactional
+    public OrderResponse placeOrder(OrderRequest request) {
+        log.info("Validating inventory for SKU: {}", request.getSkuCode());
+
+        boolean isAvailable = inventoryClient.isInStock(request.getSkuCode(), request.getQuantity());
+        if (!isAvailable) {
+            throw new RuntimeException("Product not available in sufficient quantity");
+        }
+
+        // Create order entity
+        OrderEntity orderEntity = new OrderEntity();
+        orderEntity.setOrderNumber(UUID.randomUUID().toString());
+        orderEntity.setSkuCode(request.getSkuCode());
+        orderEntity.setPrice(request.getPrice());
+        orderEntity.setQuantity(request.getQuantity());
+        orderEntity.setStatus("PLACED");
+
+        orderRepository.save(orderEntity);
+        log.info("✅ Order [{}] saved successfully", orderEntity.getOrderNumber());
+
+        // Deduct stock from inventory
+        inventoryClient.deductStock(request.getSkuCode(), request.getQuantity());
+
+        return new OrderResponse(orderEntity.getOrderNumber(),
+                "Order placed successfully", orderEntity.getStatus());
+    }
+
+    public OrderResponse getOrder(String orderNumber) {
+        OrderEntity orderEntity = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderNumber));
+
+        return new OrderResponse(orderEntity.getOrderNumber(),
+                "Order fetched successfully", orderEntity.getStatus());
+    }
+}

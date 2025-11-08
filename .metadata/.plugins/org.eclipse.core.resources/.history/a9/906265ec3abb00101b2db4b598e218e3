@@ -1,0 +1,5 @@
+package ai.presight.orderservice.security;
+
+public class SecurityConfig {
+
+}

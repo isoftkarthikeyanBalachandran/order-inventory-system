@@ -1,0 +1,130 @@
+package ai.presight.inventoryservice.service;
+
+import ai.presight.inventoryservice.exception.ResourceNotFoundException;
+import ai.presight.inventoryservice.model.Product;
+import ai.presight.inventoryservice.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+
+/**
+ * Service layer responsible for managing products and inventory operations.
+ * Handles CRUD actions, stock adjustments, and threshold-based alerts.
+ */
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ProductService {
+
+    private final ProductRepository productRepository;
+
+    @Value("${inventory.threshold:10}")
+    private int inventoryThreshold;
+
+    /**
+     * Retrieve all available products.
+     */
+    public List<Product> findAll() {
+        return productRepository.findAll();
+    }
+
+    /**
+     * Retrieve a product by its unique database ID.
+     *
+     * @param id product primary key
+     * @return Product entity if found
+     */
+    public Product findById(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found (id=" + id + ")"));
+    }
+
+    /**
+     * Retrieve a product using its SKU code.
+     *
+     * @param skuCode unique business identifier
+     * @return Product entity if found
+     */
+    public Product findBySku(String skuCode) {
+        return productRepository.findBySkuCodeIgnoreCase(skuCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Product not found (SKU=" + skuCode + ")"));
+    }
+
+    /**
+     * Add a new product to inventory.
+     *
+     * @param product new product details
+     * @return persisted Product
+     */
+    @Transactional
+    public Product create(Product product) {
+        Product saved = productRepository.save(product);
+        log.info("New product added: [{}] {} (Qty: {})", saved.getSkuCode(), saved.getName(), saved.getQuantity());
+        return saved;
+    }
+
+    /**
+     * Update an existing product using SKU as reference.
+     *
+     * @param product updated product details
+     * @return updated Product entity
+     */
+    @Transactional
+    public Product update(Product product) {
+        Product existing = findBySku(product.getSkuCode());
+
+        existing.setName(product.getName());
+        existing.setPrice(product.getPrice());
+        existing.setQuantity(product.getQuantity());
+        existing.setStatus(product.getStatus());
+
+        Product updated = productRepository.save(existing);
+        log.info("Product updated: [{}] version {}", updated.getSkuCode(), updated.getVersion());
+        return updated;
+    }
+
+    /**
+     * Deduct stock quantity for a given SKU and log warnings if below threshold.
+     *
+     * @param skuCode product identifier
+     * @param quantity amount to deduct
+     * @return updated Product
+     */
+    @Transactional
+    public Product deductStock(String skuCode, int quantity) {
+        Product product = findBySku(skuCode);
+
+        if (product.getQuantity() < quantity) {
+            log.error("Insufficient stock for SKU [{}] - available: {}, requested: {}",
+                    skuCode, product.getQuantity(), quantity);
+            throw new IllegalStateException("Not enough stock for product: " + skuCode);
+        }
+
+        product.setQuantity(product.getQuantity() - quantity);
+        Product updated = productRepository.save(product);
+
+        if (updated.getQuantity() < inventoryThreshold) {
+            log.warn("Low inventory for SKU [{}] - remaining: {}", skuCode, updated.getQuantity());
+        }
+
+        return updated;
+    }
+
+    /**
+     * Delete a product by its ID.
+     *
+     * @param id product primary key
+     */
+    @Transactional
+    public void delete(Long id) {
+        if (!productRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Cannot delete: product not found (id=" + id + ")");
+        }
+        productRepository.deleteById(id);
+        log.info("Product deleted (id={})", id);
+    }
+}

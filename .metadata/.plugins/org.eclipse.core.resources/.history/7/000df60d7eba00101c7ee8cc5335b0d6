@@ -1,0 +1,5 @@
+package ai.presight.inventoryservice.service;
+
+public class ProductService {
+
+}

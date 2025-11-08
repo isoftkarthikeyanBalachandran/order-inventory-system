@@ -1,0 +1,9 @@
+package ai.presight.inventoryservice.repository;
+
+import ai.presight.inventoryservice.model.Product;
+import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.Optional;
+
+public interface OrderRepository extends JpaRepository<Order, Long> {
+    Optional<Order> findBySkuCodeIgnoreCase(String skuCode);
+}

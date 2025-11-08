@@ -1,0 +1,5 @@
+package ai.presight.orderservice.controller;
+
+class OrderController {
+
+}

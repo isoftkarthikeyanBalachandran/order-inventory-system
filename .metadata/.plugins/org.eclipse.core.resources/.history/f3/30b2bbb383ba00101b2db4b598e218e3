@@ -1,0 +1,65 @@
+package ai.presight.inventoryservice.controller;
+
+import ai.presight.inventoryservice.model.Product;
+import ai.presight.inventoryservice.service.ProductService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/inventory")
+@RequiredArgsConstructor
+@Slf4j
+public class ProductController {
+
+    private final ProductService productService;
+
+    @GetMapping
+    public ResponseEntity<List<Product>> getAllProducts() {
+        List<Product> products = productService.getAllProducts();
+        return ResponseEntity.ok(products);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Product> getById(@PathVariable Long id) {
+        Product product = productService.getProductById(id);
+        return ResponseEntity.ok(product);
+    }
+
+    @GetMapping("/sku/{skuCode}")
+    public ResponseEntity<Product> getBySku(@PathVariable String skuCode) {
+        Product product = productService.getProductBySku(skuCode);
+        return ResponseEntity.ok(product);
+    }
+
+    @PostMapping
+    public ResponseEntity<Product> addProduct(@RequestBody Product product) {
+        Product created = productService.addProduct(product);
+        log.info("✅ Product created successfully: {}", created.getSkuCode());
+        return ResponseEntity.ok(created);
+    }
+
+    @PutMapping
+    public ResponseEntity<Product> updateProduct(@RequestBody Product product) {
+        Product updated = productService.updateProduct(product);
+        log.info("🔄 Product updated successfully: {}", updated.getSkuCode());
+        return ResponseEntity.ok(updated);
+    }
+
+    @PostMapping("/deduct")
+    public ResponseEntity<Product> deductStock(@RequestParam String skuCode, @RequestParam int qty) {
+        Product updated = productService.deductStock(skuCode, qty);
+        log.info("📦 Stock deducted: {} | Remaining: {}", skuCode, updated.getQuantity());
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        productService.deleteProduct(id);
+        log.info("🗑️ Product deleted with id {}", id);
+        return ResponseEntity.noContent().build();
+    }
+}

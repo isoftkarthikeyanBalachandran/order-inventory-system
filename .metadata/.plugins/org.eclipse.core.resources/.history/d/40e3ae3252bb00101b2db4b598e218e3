@@ -1,0 +1,93 @@
+package ai.presight.orderservice.service;
+
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ai.presight.orderservice.client.InventoryClient;
+import ai.presight.orderservice.entity.OrderEntity;
+import ai.presight.orderservice.entity.OrderItemEntity;
+import ai.presight.orderservice.model.OrderRequest;
+import ai.presight.orderservice.model.OrderResponse;
+import ai.presight.orderservice.repository.OrderRepository;
+import ai.presight.orderservice.util.UtilFunction;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class OrderService {
+
+    private final OrderRepository orderRepository;
+    private final InventoryClient inventoryClient;
+
+    @Transactional
+    public OrderResponse placeOrder(OrderRequest request) {
+        String orderNumber = UUID.randomUUID().toString();
+        log.info("Placing multi-item order: {}", orderNumber);
+
+        // Create main order entity
+        OrderEntity order = new OrderEntity();
+        order.setOrderNumber(orderNumber);
+        order.setStatus("PENDING");
+
+        double totalAmount = 0.0;
+
+        log.info("request order: {}", UtilFunction.objectToJSON(request));
+        
+        
+        for (var itemReq : request.getItems()) {
+            boolean available = inventoryClient.isInStock(itemReq.getSkuCode(), itemReq.getQuantity());
+            if (!available) {
+                throw new RuntimeException("Insufficient stock for SKU: " + itemReq.getSkuCode());
+            }
+
+            double lineTotal = itemReq.getPrice() * itemReq.getQuantity();
+            totalAmount += lineTotal;
+
+            OrderItemEntity item = OrderItemEntity.builder()
+                    .skuCode(itemReq.getSkuCode())
+                    .quantity(itemReq.getQuantity())
+                    .price(itemReq.getPrice())
+                    .order(order)
+                    .build();
+
+            order.getItems().add(item);
+        }
+
+        // Finalize and persist
+        order.setStatus("PLACED");
+        orderRepository.save(order);
+        log.info("Order {} saved successfully, totalAmount={}", orderNumber, totalAmount);
+
+        // Deduct stock
+        for (var itemReq : request.getItems()) {
+            inventoryClient.deductStock(itemReq.getSkuCode(), itemReq.getQuantity());
+        }
+
+        return OrderResponse.builder()
+                .orderNumber(orderNumber)
+                .message("Order placed successfully")
+                .status("PLACED")
+                .totalAmount(totalAmount)
+                .build();
+    }
+    
+    public OrderResponse getOrder(String orderNumber) {
+        var order = orderRepository.findByOrderNumber(orderNumber)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + orderNumber));
+
+        double totalAmount = order.getItems().stream()
+                .mapToDouble(i -> i.getPrice() * i.getQuantity())
+                .sum();
+
+        return OrderResponse.builder()
+                .orderNumber(order.getOrderNumber())
+                .message("Fetched successfully")
+                .status(order.getStatus())
+                .totalAmount(totalAmount)
+                .build();
+    }
+}

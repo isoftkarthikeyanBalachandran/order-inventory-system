@@ -1,0 +1,5 @@
+package ai.presight.orderservice.service;
+
+public class OrderService {
+
+}

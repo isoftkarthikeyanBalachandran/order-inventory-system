@@ -1,0 +1,17 @@
+package ai.presight.inventoryservice.config;
+
+import org.apache.kafka.clients.admin.NewTopic;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+public class KafkaTopicConfig {
+
+	@Bean
+	public NewTopic lowStockTopic() {
+	    return TopicBuilder.name("low-stock-topic")
+	            .partitions(1)
+	            .replicas(1)
+	            .build();
+	}
+}

@@ -1,0 +1,24 @@
+package ai.presight.orderservice.model;
+
+import lombok.*;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class OrderRequest {
+    private List<OrderItemRequest> items;
+}
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+class OrderItemRequest {
+    private String skuCode;
+    private Integer quantity;
+    private Double price;
+}

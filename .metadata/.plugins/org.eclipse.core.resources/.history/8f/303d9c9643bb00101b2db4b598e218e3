@@ -1,0 +1,14 @@
+package ai.presight.orderservice.model;
+
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class OrderResponse {
+    private String orderNumber;
+    private String message;
+    private String status;
+}

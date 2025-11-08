@@ -1,0 +1,20 @@
+package ai.presight.inventoryservice.event;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class LowStockPublisher {
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    public void publishLowStock(String sku, int remainingQty) {
+        LowStockEvent event = new LowStockEvent(sku, remainingQty);
+        kafkaTemplate.send("low-stock-topic", event).addCallback(result -> log.info("Event sent"), ex -> log.error("Failed", ex));
+        log.warn("⚠️ LowStockEvent published for SKU={} (remaining={})", sku, remainingQty);
+    }
+}

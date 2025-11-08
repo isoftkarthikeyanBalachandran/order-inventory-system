@@ -1,0 +1,25 @@
+package ai.presight.apigateway.filter;
+
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.server.ServerWebExchange;
+
+import lombok.extern.slf4j.Slf4j;
+import reactor.core.publisher.Mono;
+
+@Slf4j
+@Configuration
+public class RequestLoggingFilter {
+	 @Bean
+	    public GlobalFilter logFilter() {
+	        return (exchange, chain) -> {
+	            ServerWebExchange request = exchange;
+	            log.info("➡️  Incoming {} {}", request.getRequest().getMethod(), request.getRequest().getURI());
+	            return chain.filter(exchange)
+	                    .then(Mono.fromRunnable(() ->
+	                            log.info("⬅️  Completed {} {}", request.getResponse().getStatusCode(),
+	                                    request.getRequest().getURI())));
+	        };
+	    }
+	}

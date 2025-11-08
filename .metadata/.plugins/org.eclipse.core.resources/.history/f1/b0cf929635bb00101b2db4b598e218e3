@@ -1,0 +1,11 @@
+package ai.presight.orderservice.repository;
+
+import java.util.Optional;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import ai.presight.orderservice.model.Order;
+
+public interface OrderRepository extends JpaRepository<Order, Long> {
+    Optional<Order> findByOrderNumber(String orderNumber);
+}

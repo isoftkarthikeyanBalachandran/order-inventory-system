@@ -1,0 +1,5 @@
+package ai.presight.inventoryservice.exception;
+
+public class ResourceNotFoundException {
+
+}

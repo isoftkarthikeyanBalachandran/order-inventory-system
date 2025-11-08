@@ -1,0 +1,50 @@
+server:
+  port: 8082
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/orderdb
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # Auto-create tables based on your entity (safe for dev)
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  jackson:
+    serialization:
+      indent_output: true
+
+  security:
+    user:
+      name: user
+      password: user
+
+logging:
+
+  file:
+	     name: logs/order-service.log
+  
+  level:
+    root: INFO
+    org.hibernate.SQL: DEBUG
+    org.springframework.web: INFO
+    ai.presight.orderservice: DEBUG
+		
+	
+inventory:
+  threshold: 10
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  security:
+    enabled: false

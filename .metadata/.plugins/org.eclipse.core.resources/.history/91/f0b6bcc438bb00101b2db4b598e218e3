@@ -1,0 +1,23 @@
+/*
+ * package ai.presight.inventoryservice.controller;
+ * 
+ * import ai.presight.inventoryservice.security.JwtUtil; import
+ * lombok.RequiredArgsConstructor; import
+ * org.springframework.http.ResponseEntity; import
+ * org.springframework.web.bind.annotation.*;
+ * 
+ * import java.util.*;
+ * 
+ * @RestController
+ * 
+ * @RequestMapping("/auth")
+ * 
+ * @RequiredArgsConstructor public class AuthController {
+ * 
+ * private final JwtUtil jwtUtil;
+ * 
+ * @PostMapping("/token") public ResponseEntity<Map<String, String>>
+ * generateToken(@RequestParam String username) { List<String> roles =
+ * List.of("ROLE_USER"); String token = jwtUtil.generateToken(username, roles);
+ * return ResponseEntity.ok(Map.of("token", token)); } }
+ */

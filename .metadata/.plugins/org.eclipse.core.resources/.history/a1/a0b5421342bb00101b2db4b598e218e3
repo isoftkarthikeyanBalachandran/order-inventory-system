@@ -1,0 +1,5 @@
+package ai.presight.orderservice.entity;
+
+public class OrderItemEntity {
+
+}

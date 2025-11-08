@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🧩 Order & Inventory Microservices System
 
 ## 📘 Overview
@@ -35,3 +36,7 @@ kubectl apply -f k8s/eureka-server.yaml
 kubectl apply -f k8s/inventory-service.yaml
 kubectl apply -f k8s/order-service.yaml
 kubectl apply -f k8s/api-gateway.yaml
+=======
+# order-inventory-presight
+order-inventory-presight assesment 
+>>>>>>> 00121d5d12e40423d0f5fdf69d4c555fd58fcea0

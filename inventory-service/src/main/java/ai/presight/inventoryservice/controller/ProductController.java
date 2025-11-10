@@ -1,3 +1,11 @@
+/**
+ * -----------------------------------------------------------
+ * @Project     : Order & Inventory Microservices System
+ * @Author      : Karthikeyan Balachandran
+ * @Created On  : 09-Nov-2025
+ * -----------------------------------------------------------
+ */
+
 package ai.presight.inventoryservice.controller;
 
 import java.util.List;
@@ -32,8 +40,9 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<List<Product>> getAll(HttpServletRequest request) {
     	
+    	log.info("Fetching all products...");
         List<Product> products = productService.findAll();
-        
+        log.info("Total products fetched: {}", products.size());
         return ResponseEntity.ok(products);
     }
 

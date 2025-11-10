@@ -78,3 +78,8 @@ eureka:
     register-with-eureka: true
   instance:
     prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET:ThisIsASecretKeyForJwtGenerationPresight2025!}
+  expiration: ${JWT_EXPIRATION:3600000}
+

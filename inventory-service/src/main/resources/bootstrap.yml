@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: inventory-service
+
+  cloud:
+    kubernetes:
+      config:
+        enable-api: true
+        name: inventory-service
+      reload:
+        enabled: true
+        strategy: refresh
+        monitoring-config-maps: true

@@ -1,5 +1,0 @@
-package ai.presight.orderservice.config;
-
-public class FeignConfig {
-
-}

@@ -1,13 +1,21 @@
+
+/**
+ * -----------------------------------------------------------
+ * @Project     : Order & Inventory Microservices System
+ * @Author      : Karthikeyan Balachandran
+ * @Created On  : 09-Nov-2025
+ * -----------------------------------------------------------
+ */
+
 package ai.presight.inventoryservice.service;
 
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import ai.presight.inventoryservice.config.InventoryThresholdConfig;
 import ai.presight.inventoryservice.event.LowStockPublisher;
-import ai.presight.inventoryservice.exception.ResourceNotFoundException;
+import ai.presight.common.exception.ResourceNotFoundException;
 import ai.presight.inventoryservice.model.Product;
 import ai.presight.inventoryservice.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,11 +35,13 @@ public class ProductService {
     private final LowStockPublisher lowStockPublisher;
     
 
-   /**
-     * Retrieve all available products.
-     */
+  
     public List<Product> findAll() {
-        return productRepository.findAll();
+        log.info(">>> Fetching all products from DB...");
+        List<Product> all = productRepository.findAll();
+        log.info(">>> Retrieved {} products", all.size());
+        all.forEach(p -> log.info("Product: id={} sku={} name={} qty={}", p.getId(), p.getSkuCode(), p.getName(), p.getQuantity()));
+        return all;
     }
 
     /**

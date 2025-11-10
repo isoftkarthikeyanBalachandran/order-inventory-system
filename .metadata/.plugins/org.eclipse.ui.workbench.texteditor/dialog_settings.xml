@@ -3,6 +3,16 @@
 	<item key="hasShownOverlayPopupBefore" value="true"/>
 	<section name="java.lang.Class">
 		<list key="findhistory">
+			<item value="JWT_SECRET"/>
+			<item value="web"/>
+			<item value="spring-boot-starter-web"/>
+			<item value="security"/>
+			<item value="org.springframework.boo"/>
+			<item value="io.jsonwebtoken"/>
+			<item value="spring-boot-starter-security"/>
+			<item value="clo"/>
+			<item value="feign"/>
+			<item value="ing-boot-maven"/>
 			<item value="spring.json.add.type.headers: false"/>
 			<item value="spring.json.add.type.headers"/>
 			<item value="kafka"/>

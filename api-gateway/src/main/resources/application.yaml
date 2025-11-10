@@ -5,6 +5,9 @@ spring:
   application:
     name: api-gateway
 
+  main:
+    web-application-type: reactive
+
   cloud:
     gateway:
       discovery:
@@ -28,15 +31,14 @@ spring:
             - StripPrefix=0
 
         - id: auth-route
-          uri: lb://order-service
+          uri: lb://iam-service
           predicates:
             - Path=/api/v1/auth/**
           filters:
-          - StripPrefix=0
+            - StripPrefix=0
       
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
-
 
 logging:
   level:
@@ -52,14 +54,11 @@ management:
     gateway:
       enabled: true
 
-
-# Service Discovery
 eureka:
   client:
     service-url:
       defaultZone: http://eureka-server:8761/eureka/
-      fetch-registry: true
-      register-with-eureka: true
+    fetch-registry: true
+    register-with-eureka: true
   instance:
     prefer-ip-address: true
-

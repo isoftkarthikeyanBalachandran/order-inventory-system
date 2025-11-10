@@ -1,3 +1,10 @@
+/**
+ * -----------------------------------------------------------
+ * @Project     : Order & Inventory Microservices System
+ * @Author      : Karthikeyan Balachandran
+ * @Created On  : 09-Nov-2025
+ * -----------------------------------------------------------
+ */
 package ai.presight.inventoryservice.config;
 
 import org.apache.kafka.clients.admin.NewTopic;

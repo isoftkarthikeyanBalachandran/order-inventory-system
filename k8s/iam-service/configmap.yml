@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+  namespace: order-system
+data:
+  JWT_EXPIRATION: "3600000"   # 1 hour

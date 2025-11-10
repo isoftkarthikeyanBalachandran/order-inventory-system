@@ -1,0 +1,14 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: iam-service
+
+# Temporary static credentials (will  replace with UAEPASS / LDAP in future enhancement)
+app:
+  users:
+    - username: admin
+      password: admin123
+    - username: user1
+      password: user123

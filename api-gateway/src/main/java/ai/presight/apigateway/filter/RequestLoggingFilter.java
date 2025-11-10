@@ -1,3 +1,11 @@
+/**
+ * -----------------------------------------------------------
+ * @Project     : Order & Inventory Microservices System
+ * @Author      : Karthikeyan Balachandran
+ * @Created On  : 10-Nov-2025
+ * -----------------------------------------------------------
+ */
+
 package ai.presight.apigateway.filter;
 
 import org.springframework.cloud.gateway.filter.GlobalFilter;
@@ -15,10 +23,10 @@ public class RequestLoggingFilter {
 	    public GlobalFilter logFilter() {
 	        return (exchange, chain) -> {
 	            ServerWebExchange request = exchange;
-	            log.info("➡️  Incoming {} {}", request.getRequest().getMethod(), request.getRequest().getURI());
+	            log.info("Any Incoming {} {}", request.getRequest().getMethod(), request.getRequest().getURI());
 	            return chain.filter(exchange)
 	                    .then(Mono.fromRunnable(() ->
-	                            log.info("⬅️  Completed {} {}", request.getResponse().getStatusCode(),
+	                            log.info("Completed RequestLoggingFilter {} {}", request.getResponse().getStatusCode(),
 	                                    request.getRequest().getURI())));
 	        };
 	    }

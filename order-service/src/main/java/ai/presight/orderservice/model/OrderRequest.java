@@ -9,5 +9,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class OrderRequest {
+	
+	private String status;  
     private List<OrderItemRequest> items;
 }

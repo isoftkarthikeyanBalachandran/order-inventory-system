@@ -5,6 +5,9 @@ spring:
   application:
     name: inventory-service
 
+  config:
+    import: optional:configserver:http://config-server:8888
+
   datasource:
     url: jdbc:postgresql://postgres-db:5432/inventorydb
     username: postgres
@@ -14,7 +17,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: false
+    show-sql: true
     properties:
       hibernate:
         format_sql: true
@@ -30,23 +33,28 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.add.type.headers: false   # disables type header in Kafka message
+        spring.json.add.type.headers: false
 
-logging:
-  level:
-    root: INFO
-    org.hibernate.SQL: DEBUG
-    org.springframework.web: INFO
-    ai.presight.inventoryservice: DEBUG
+  cloud:
+    kubernetes:
+      config:
+        name: inventory-service
+        namespace: order-system
+        enable-api: true
+      reload:
+        enabled: true
+        strategy: refresh
+        mode: event
+        monitoring-config-maps: true
 
 inventory:
-  threshold: 10
+  threshold: ${inventory.threshold:10}   #  matches ConfigMap key exactly
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: refresh, env, health, info, metrics, prometheus
   endpoint:
     health:
       show-details: always
@@ -67,3 +75,13 @@ eureka:
     register-with-eureka: true
   instance:
     prefer-ip-address: true
+
+jwt:
+  secret: ${JWT_SECRET:ThisIsASecretKeyForJwtGenerationPresight2025!}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+logging:
+  level:
+    root: INFO
+    org.springframework.cloud.kubernetes: DEBUG
+    ai.presight.inventoryservice: DEBUG

@@ -1,3 +1,11 @@
+/**
+ * -----------------------------------------------------------
+ * @Project     : Order & Inventory Microservices System
+ * @Author      : Karthikeyan Balachandran
+ * @Created On  : 09-Nov-2025
+ * -----------------------------------------------------------
+ */
+
 package ai.presight.inventoryservice.event;
 
 import lombok.RequiredArgsConstructor;
@@ -18,11 +26,11 @@ public class LowStockPublisher {
         LowStockEvent event = new LowStockEvent(sku, remainingQty);
         kafkaTemplate.send("low-stock-topic", event).whenComplete((result, ex) -> {
             if (ex == null) {
-                log.info("✅ LowStockEvent sent successfully: {}", event);
+                log.info(" LowStockEvent sent successfully: {}", event);
             } else {
-                log.error("❌ Failed to send LowStockEvent: {}", event, ex);
+                log.error(" Failed to send LowStockEvent: {}", event, ex);
             }
         });
-        log.warn("⚠️ LowStockEvent published for SKU={} (remaining={})", sku, remainingQty);
+        log.warn(" LowStockEvent published for SKU={} (remaining={})", sku, remainingQty);
     }
 }

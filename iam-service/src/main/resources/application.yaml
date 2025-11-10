@@ -1,0 +1,42 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: iam-service
+  config:
+    import: optional:configserver:http://config-server:8888
+
+# Static user credentials (for testing)
+app:
+  users:
+    - username: admin
+      password: admin123
+    - username: user1
+      password: user123
+
+# JWT configuration
+jwt:
+  secret: ${JWT_SECRET:ThisIsASecretKeyForJwtGenerationPresight2025!}
+  expiration: ${JWT_EXPIRATION:3600000}
+
+# Eureka configuration
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka/
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    hostname: iam-service
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${spring.cloud.client.hostname}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  endpoint:
+    health:
+      show-details: always

@@ -1,6 +1,17 @@
+/**
+ * -----------------------------------------------------------
+ * @Project     : Order & Inventory Microservices System
+ * @Author      : Karthikeyan Balachandran
+ * @Created On  : 09-Nov-2025
+ * -----------------------------------------------------------
+ */
+
+
 package ai.presight.orderservice.exception;
 
 import org.springframework.http.HttpStatus;
+
+import ai.presight.common.exception.ResourceNotFoundException;
 import feign.Response;
 import feign.codec.ErrorDecoder;
 

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-service
+  namespace: order-system
+data:
+  inventory.threshold: "10"

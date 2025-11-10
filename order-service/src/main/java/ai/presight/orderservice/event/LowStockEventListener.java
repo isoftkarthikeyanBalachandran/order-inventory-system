@@ -1,3 +1,12 @@
+/**
+ * -----------------------------------------------------------
+ * @Project     : Order & Inventory Microservices System
+ * @Author      : Karthikeyan Balachandran
+ * @Created On  : 09-Nov-2025
+ * -----------------------------------------------------------
+ */
+
+
 package ai.presight.orderservice.event;
 
 import lombok.extern.slf4j.Slf4j;
@@ -12,7 +21,7 @@ public class LowStockEventListener {
 
 	@KafkaListener(topics = "low-stock-topic", groupId = "low-stock-consumer")
 	public void handleLowStockEvent(LowStockEvent event) {
-	    log.warn("⚠️ Low stock alert for SKU={} (remaining={})",
+	    log.warn(" Low stock alert for SKU={} (remaining={})",
 	             event.getSkuCode(), event.getRemainingQty());
 	}
 }

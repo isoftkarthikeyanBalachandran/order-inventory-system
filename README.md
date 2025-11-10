@@ -321,7 +321,24 @@ pause
 - Integrate security hardening (OAuth2 and role-based permissions).
 
 
+**Evidence & Verification**
 
+All functionalities were tested and verified against the original requirements.
+Below are the supporting artifacts, linked for easy reference.
+
+📂 Artifacts
+🧩 Testing & Verification Document
+ – Detailed validation steps with screenshots of API requests, Kafka events, ConfigMap threshold logs, and Kubernetes deployment proofs. Evidence.docx
+📊 Requirement Response Sheet
+ – Excel tracker mapping each requirement to implementation details and test evidence. Request and response.xlsx
+🧱 Architecture Diagram
+ – Visual overview of the five-zone microservices layout and inter-service communication. Architecture-Diagram.png
+🗂️ Folder Structure Diagram
+ – Organized module representation showing service separation and dependencies. image.png
+🧰 Build & Deployment Script
+ – Automated batch file to build all modules, create Docker images, and deploy to Kubernetes.  built.bat
+🗄️ Database Schema Script
+ – SQL DDL for orderdb and inventorydb creation, with proper indexes and constraints.  DB-Design.sql
 
 
 ## Requirement Compliance Summary

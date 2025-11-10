@@ -1,0 +1,153 @@
+# ===========================================
+# 🌍 GLOBAL CONFIGURATION
+# ===========================================
+global:
+  namespace: order-system
+  imagePullPolicy: IfNotPresent
+
+  # Shared JWT and Common Configs
+  jwt:
+    secretName: iam-jwt-secret
+    secretKey: JWT_SECRET
+    expirationKey: JWT_EXPIRATION
+    defaultExpiration: "3600000"
+
+  # Spring Cloud Config + Service Discovery
+  configServer:
+    url: http://config-server:8888
+  eureka:
+    url: http://eureka-server:8761/eureka/
+
+  #  Common Infrastructure
+  postgres:
+    host: postgres-db
+    user: postgres
+    password: postgres
+
+  kafka:
+    url: kafka-service:9092
+
+# ===========================================
+# ️ COMMON SETTINGS
+# ===========================================
+replicaCount: 1
+resources: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# ===========================================
+#  POSTGRESQL
+# ===========================================
+postgres:
+  image: postgres:16
+  replicas: 1
+  port: 5432
+  defaultDb: postgres
+  databases:
+    order: orderdb
+    inventory: inventorydb
+
+# ===========================================
+#  CONFIG SERVER
+# ===========================================
+configServer:
+  image: config-server:latest
+  port: 8888
+
+# ===========================================
+#  EUREKA SERVER
+# ===========================================
+eurekaServer:
+  image: eureka-server:latest
+  port: 8761
+
+# ===========================================
+#  IAM SERVICE
+# ===========================================
+iamService:
+  image: iam-service:latest
+  port: 8083
+  probes:
+    liveness:
+      path: /actuator/health
+      initialDelaySeconds: 20
+      periodSeconds: 15
+    readiness:
+      path: /actuator/health
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+# ===========================================
+#  API GATEWAY
+# ===========================================
+apiGateway:
+  image: api-gateway:latest
+  port: 8080
+  nodePort: 30080
+
+# ===========================================
+#  ORDER SERVICE
+# ===========================================
+orderService:
+  image: order-service:latest
+  port: 8082
+  db: orderdb
+  kafkaGroup: order-consumer-group
+  probes:
+    liveness:
+      path: /actuator/health
+      initialDelaySeconds: 20
+      periodSeconds: 15
+    readiness:
+      path: /actuator/health
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+# ===========================================
+#  INVENTORY SERVICE
+# ===========================================
+inventoryService:
+  image: inventory-service:latest
+  port: 8081
+  db: inventorydb
+  threshold: "10"
+  probes:
+    liveness:
+      path: /actuator/health
+      initialDelaySeconds: 20
+      periodSeconds: 15
+    readiness:
+      path: /actuator/health
+      initialDelaySeconds: 10
+      periodSeconds: 10
+
+# ===========================================
+#  KAFKA + ZOOKEEPER STACK
+# ===========================================
+kafka:
+  replicas: 1
+  image: confluentinc/cp-kafka:7.0.1
+  port: 9092
+  brokerId: 1
+  listenerProtocolMap: "PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT"
+  listeners: "PLAINTEXT://:29092,PLAINTEXT_INTERNAL://:9092"
+  advertisedListeners: "PLAINTEXT://localhost:29092,PLAINTEXT_INTERNAL://kafka-service:9092"
+  interBrokerListener: "PLAINTEXT_INTERNAL"
+  replicationFactor: 1
+  transactionMinISR: 1
+  transactionReplication: 1
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.0.1
+    replicas: 1
+    port: 2181
+    tickTime: 2000
+
+# ===========================================
+#  COMMON CONFIGMAP + SECRETS (used across services)
+# ===========================================
+commonConfig:
+  jwtExpiration: "3600000"
+
+iamSecret:
+  jwtSecret: "ThisIsASecretKeyForJwtGenerationPresight2025!"

@@ -1,0 +1,9 @@
+apiVersion: v2
+name: order-system
+description: Order & Inventory Microservices System for Presight.ai (Helm Deployment)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+
+sources:
+  - https://github.com/isoftkarthikeyanBalachandran/order-inventory-presight

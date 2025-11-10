@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: inventory-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: inventory-service
+  template:
+    metadata:
+      labels:
+        app: inventory-service
+    spec:
+      containers:
+        - name: inventory-service
+          image: {{ .Values.inventoryService.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.inventoryService.port }}
+
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iam-jwt-secret
+                  key: JWT_SECRET
+            - name: JWT_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: JWT_EXPIRATION
+
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:{{ .Values.global.configServer.url }}
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: {{ .Values.global.eureka.url }}
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://{{ .Values.global.postgres.host }}:5432/{{ .Values.inventoryService.db }}
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.global.postgres.user }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: {{ .Values.global.postgres.password }}
+
+          envFrom:
+            - configMapRef:
+                name: inventory-service
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: inventory-service
+spec:
+  selector:
+    app: inventory-service
+  ports:
+    - port: {{ .Values.inventoryService.port }}
+      targetPort: {{ .Values.inventoryService.port }}
+  type: ClusterIP
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: inventory-config-reader
+  namespace: {{ .Values.global.namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: inventory-config-reader-binding
+  namespace: {{ .Values.global.namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: {{ .Values.global.namespace }}
+roleRef:
+  kind: Role
+  name: inventory-config-reader
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka-server
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: eureka-server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: eureka-server
+  template:
+    metadata:
+      labels:
+        app: eureka-server
+    spec:
+      containers:
+        - name: eureka-server
+          image: {{ .Values.eurekaServer.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.eurekaServer.port }}
+          env:
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:{{ .Values.global.configServer.url }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka-server
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: eureka-server
+spec:
+  selector:
+    app: eureka-server
+  ports:
+    - port: {{ .Values.eurekaServer.port }}
+      targetPort: {{ .Values.eurekaServer.port }}
+  type: ClusterIP

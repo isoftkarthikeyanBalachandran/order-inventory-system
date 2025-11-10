@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-server
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: config-server
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: config-server
+  template:
+    metadata:
+      labels:
+        app: config-server
+    spec:
+      containers:
+        - name: config-server
+          image: {{ .Values.configServer.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.configServer.port }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.configServer.profile }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: config-server
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: config-server
+spec:
+  selector:
+    app: config-server
+  ports:
+    - port: {{ .Values.configServer.port }}
+      targetPort: {{ .Values.configServer.port }}
+  type: ClusterIP

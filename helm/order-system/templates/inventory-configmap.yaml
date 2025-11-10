@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: inventory-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: inventory-service
+data:
+  inventory.threshold: "{{ .Values.inventoryService.threshold }}"

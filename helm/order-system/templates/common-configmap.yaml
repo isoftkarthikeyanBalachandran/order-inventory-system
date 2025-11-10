@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: common-config
+  namespace: {{ .Values.global.namespace }}
+data:
+  JWT_EXPIRATION: "{{ .Values.iamService.jwtExpiration }}"

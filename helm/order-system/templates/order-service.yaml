@@ -1,0 +1,84 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: order-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: order-service
+  template:
+    metadata:
+      labels:
+        app: order-service
+    spec:
+      containers:
+        - name: order-service
+          image: {{ .Values.orderService.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.orderService.port }}
+
+          env:
+            # --- 🔐 Shared JWT Config ---
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iam-jwt-secret
+                  key: JWT_SECRET
+            - name: JWT_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: JWT_EXPIRATION
+
+            # --- ⚙️ Externalized Spring Configs ---
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:{{ .Values.global.configServer.url }}
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: {{ .Values.global.eureka.url }}
+
+            # --- 💾 Database Connection ---
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://{{ .Values.global.postgres.host }}:5432/{{ .Values.orderService.db }}
+            - name: SPRING_DATASOURCE_USERNAME
+              value: {{ .Values.global.postgres.user }}
+            - name: SPRING_DATASOURCE_PASSWORD
+              value: {{ .Values.global.postgres.password }}
+
+            # --- 📡 Kafka Configuration ---
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: {{ .Values.global.kafka.url }}
+            - name: SPRING_KAFKA_CONSUMER_GROUP_ID
+              value: {{ .Values.orderService.kafkaGroup }}
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.orderService.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.orderService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: order-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: order-service
+spec:
+  selector:
+    app: order-service
+  ports:
+    - port: {{ .Values.orderService.port }}
+      targetPort: {{ .Values.orderService.port }}
+  type: ClusterIP

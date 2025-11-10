@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iam-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: iam-service
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: iam-service
+  template:
+    metadata:
+      labels:
+        app: iam-service
+    spec:
+      containers:
+        - name: iam-service
+          image: {{ .Values.iamService.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.iamService.port }}
+
+          env:
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: iam-jwt-secret
+                  key: JWT_SECRET
+            - name: JWT_EXPIRATION
+              valueFrom:
+                configMapKeyRef:
+                  name: common-config
+                  key: JWT_EXPIRATION
+
+            - name: SPRING_APPLICATION_NAME
+              value: iam-service
+            - name: SPRING_PROFILES_ACTIVE
+              value: {{ .Values.iamService.profile }}
+            - name: SPRING_CONFIG_IMPORT
+              value: optional:configserver:{{ .Values.global.configServer.url }}
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: {{ .Values.global.eureka.url }}
+            - name: MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE
+              value: health,info
+
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.iamService.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: {{ .Values.iamService.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iam-service
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: iam-service
+spec:
+  selector:
+    app: iam-service
+  ports:
+    - port: {{ .Values.iamService.port }}
+      targetPort: {{ .Values.iamService.port }}
+      protocol: TCP
+  type: ClusterIP

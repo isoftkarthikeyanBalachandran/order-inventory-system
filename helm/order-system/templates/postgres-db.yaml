@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres-db
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: postgres-db
+spec:
+  replicas: {{ .Values.postgres.replicas }}
+  selector:
+    matchLabels:
+      app: postgres-db
+  template:
+    metadata:
+      labels:
+        app: postgres-db
+    spec:
+      containers:
+        - name: postgres
+          image: {{ .Values.postgres.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.postgres.port }}
+          env:
+            - name: POSTGRES_USER
+              value: {{ .Values.global.postgres.user }}
+            - name: POSTGRES_PASSWORD
+              value: {{ .Values.global.postgres.password }}
+            - name: POSTGRES_DB
+              value: {{ .Values.postgres.defaultDb }}
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+            - name: init-script
+              mountPath: /docker-entrypoint-initdb.d
+      volumes:
+        - name: postgres-data
+          emptyDir: {}
+        - name: init-script
+          configMap:
+            name: postgres-init-script
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: {{ .Values.global.namespace }}
+data:
+  init.sql: |
+    -- Create both databases dynamically from Helm values
+    CREATE DATABASE {{ .Values.postgres.databases.order }};
+    CREATE DATABASE {{ .Values.postgres.databases.inventory }};
+
+    \connect {{ .Values.postgres.databases.order }};
+
+    DROP TABLE IF EXISTS order_items CASCADE;
+    DROP TABLE IF EXISTS orders CASCADE;
+
+    CREATE TABLE orders (
+        id BIGSERIAL PRIMARY KEY,
+        order_number VARCHAR(50) UNIQUE NOT NULL,
+        status VARCHAR(20) DEFAULT 'PLACED' NOT NULL,
+        created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+        updated_at TIMESTAMP DEFAULT NOW(),
+        version INT DEFAULT 0
+    );
+
+    CREATE INDEX idx_orders_number_lower ON orders (LOWER(order_number));
+    CREATE INDEX idx_orders_status ON orders (status);
+
+    CREATE TABLE order_items (
+        id BIGSERIAL PRIMARY KEY,
+        order_id BIGINT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+        sku_code VARCHAR(50) NOT NULL,
+        quantity INT NOT NULL CHECK (quantity > 0),
+        price NUMERIC(10,2) NOT NULL CHECK (price > 0)
+    );
+
+    CREATE INDEX idx_order_items_sku ON order_items (sku_code);
+
+    \connect {{ .Values.postgres.databases.inventory }};
+
+    DROP TABLE IF EXISTS products;
+
+    CREATE TABLE products (
+        id BIGSERIAL PRIMARY KEY,
+        sku_code VARCHAR(50) UNIQUE NOT NULL,
+        name VARCHAR(150) NOT NULL,
+        price NUMERIC(10,2) NOT NULL,
+        quantity INT NOT NULL,
+        status VARCHAR(20) DEFAULT 'ACTIVE',
+        created_at TIMESTAMP DEFAULT NOW(),
+        updated_at TIMESTAMP DEFAULT NOW()
+    );
+
+    CREATE INDEX idx_products_sku ON products (sku_code);
+    CREATE INDEX idx_products_status ON products (status);
+
+    GRANT ALL PRIVILEGES ON DATABASE {{ .Values.postgres.databases.order }} TO {{ .Values.global.postgres.user }};
+    GRANT ALL PRIVILEGES ON DATABASE {{ .Values.postgres.databases.inventory }} TO {{ .Values.global.postgres.user }};
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-db
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    app: postgres-db
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres-db
+  ports:
+    - port: {{ .Values.postgres.port }}
+      targetPort: {{ .Values.postgres.port }}

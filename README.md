@@ -328,17 +328,22 @@ Below are the supporting artifacts, linked for easy reference.
 
 📂 Artifacts
 🧩 Testing & Verification Document
- – Detailed validation steps with screenshots of API requests, Kafka events, ConfigMap threshold logs, and Kubernetes deployment proofs. Evidence.docx
+ – Detailed validation steps with screenshots of API requests, Kafka events, ConfigMap threshold logs, and Kubernetes deployment proofs. Evidence.docx https://github.com/isoftkarthikeyanBalachandran/order-inventory-system/blob/main/Evidence.docx
+ 
 📊 Requirement Response Sheet
- – Excel tracker mapping each requirement to implementation details and test evidence. Request and response.xlsx
+ – Excel tracker mapping each requirement to implementation details and test evidence. Request and response.xlsx https://github.com/isoftkarthikeyanBalachandran/order-inventory-system/blob/main/Request%20and%20response.xlsx
+ 
 🧱 Architecture Diagram
- – Visual overview of the five-zone microservices layout and inter-service communication. Architecture-Diagram.png
+ – Visual overview of the five-zone microservices layout and inter-service communication. Architecture-Diagram.png https://github.com/isoftkarthikeyanBalachandran/order-inventory-system/blob/main/Architecture-Diagram.png
+ 
 🗂️ Folder Structure Diagram
- – Organized module representation showing service separation and dependencies. image.png
+ – Organized module representation showing service separation and dependencies. image.png https://github.com/isoftkarthikeyanBalachandran/order-inventory-system/blob/main/image.png
+ 
 🧰 Build & Deployment Script
- – Automated batch file to build all modules, create Docker images, and deploy to Kubernetes.  built.bat
+ – Automated batch file to build all modules, create Docker images, and deploy to Kubernetes.  built.bat https://github.com/isoftkarthikeyanBalachandran/order-inventory-system/blob/main/built.bat
+ 
 🗄️ Database Schema Script
- – SQL DDL for orderdb and inventorydb creation, with proper indexes and constraints.  DB-Design.sql
+ – SQL DDL for orderdb and inventorydb creation, with proper indexes and constraints.  DB-Design.sql https://github.com/isoftkarthikeyanBalachandran/order-inventory-system/blob/main/DB-Design.sql
 
 
 ## Requirement Compliance Summary
